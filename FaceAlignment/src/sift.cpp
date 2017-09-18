@@ -32,6 +32,10 @@
 
 #include "sift.h"
 #include <string.h>
+#ifdef __MACH__
+#include <math.h>
+#include <cstdlib>
+#endif
 
 #define pi 3.1415926
 double SIFT::delta_gauss_x[25] = 

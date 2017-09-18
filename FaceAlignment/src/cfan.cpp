@@ -33,6 +33,11 @@
 #include "cfan.h"
 #include <string.h>
 #include <algorithm>
+#ifdef __MACH__
+#include <math.h>
+#include <cstdlib>
+#endif
+
 /** A constructor.
   *  Initialize basic parameters.
   */
