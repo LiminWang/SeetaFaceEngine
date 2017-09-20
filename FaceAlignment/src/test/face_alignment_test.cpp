@@ -153,6 +153,8 @@ int main(int argc, char** argv)
     }
   }
 
+  cv::imwrite(output_img.c_str(), img);
+
   cv::namedWindow("Test", cv::WINDOW_AUTOSIZE);
   cv::imshow("Alignment", img);
   cv::waitKey(0);
