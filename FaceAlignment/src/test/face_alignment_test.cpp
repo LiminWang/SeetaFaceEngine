@@ -28,55 +28,98 @@
  * Note: the above information must be kept whenever or wherever the codes are used.
  *
  */
-
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <string>
-
 #include "cv.h"
 #include "highgui.h"
-
 #include "face_detection.h"
 #include "face_alignment.h"
 
-#ifdef _WIN32
-std::string DATA_DIR = "../../data/";
-std::string MODEL_DIR = "../../model/";
-#else
-std::string DATA_DIR = "./data/";
-std::string MODEL_DIR = "./model/";
-#endif
+static void show_usage(std::string app) {
+  std::cerr << "Usage: " << app << " <option(s)>" << std::endl
+    << "Options:" << std::endl
+    << "\t-h,--help\t\tShow this help message" << std::endl
+    << "\t-i,--input FILE\t\tSpecify the input image for face alignment testing" << std::endl
+    << "\t-o,--output FILE\t\tSpecify the output face aligment image" << std::endl
+    << "\t-m,--model MODEL_PATH\t\tSpecifiy the models path" << std::endl
+    << std::endl;
+}
 
 int main(int argc, char** argv)
 {
+  std::string input_img  = "./data/image_0001.png";
+  std::string output_img = "./result_0001.png";
+  std::string model_path = "./model";
+  std::string model_fd_name = "seeta_fd_frontal_v1.0.bin";
+  std::string model_fa_name = "seeta_fa_v1.1.bin";
+  std::string model_fd;
+  std::string model_fa;
+
+  if (argc < 2) {
+    show_usage(argv[0]);
+    return 1;
+  }
+
+  for (int i = 1; i < argc; ++i) {
+    std::string arg = argv[i];
+    if ((arg == "-h") || (arg == "--help")) {
+      show_usage(argv[0]);
+      return 0;
+    } else if ((arg == "-i") || (arg == "--input")) {
+      if (i + 1 < argc) {
+        input_img = argv[++i];
+      } else {
+        std::cerr << "the option requires one argument." << std::endl;
+        return -1;
+      }
+    } else if ((arg == "-o") || (arg == "--output")) {
+      if (i + 1 < argc) {
+        output_img = argv[++i];
+      } else {
+        std::cerr << "the option requires one argument." << std::endl;
+        return -1;
+      }
+    } else if ((arg == "-m") || (arg == "--model")) {
+      if (i + 1 < argc) {
+        model_path = argv[++i];
+      } else {
+        std::cerr << "the option requires one argument." << std::endl;
+        return -1;
+      }
+    }
+  }
+
+  model_fd = model_path + "/" +  model_fd_name;
+  model_fa = model_path + "/" + model_fa_name;
+
   // Initialize face detection model
-  seeta::FaceDetection detector("./model/seeta_fd_frontal_v1.0.bin");
+  seeta::FaceDetection detector(model_fd.c_str());
   detector.SetMinFaceSize(40);
   detector.SetScoreThresh(2.f);
   detector.SetImagePyramidScaleFactor(0.8f);
   detector.SetWindowStep(4, 4);
 
   // Initialize face alignment model 
-  seeta::FaceAlignment point_detector((MODEL_DIR + "seeta_fa_v1.1.bin").c_str());
+  seeta::FaceAlignment point_detector(model_fa.c_str());
 
   //load image
   IplImage *img_grayscale = NULL;
-  img_grayscale = cvLoadImage((DATA_DIR + "image_0001.png").c_str(), 0);
+  img_grayscale = cvLoadImage(input_img.c_str(), 0);
   if (img_grayscale == NULL)
   {
     return 0;
   }
 
-  IplImage *img_color = cvLoadImage((DATA_DIR + "image_0001.png").c_str(), 1);
+  IplImage *img_color = cvLoadImage(input_img.c_str(), 1);
   int pts_num = 5;
   int im_width = img_grayscale->width;
   int im_height = img_grayscale->height;
   unsigned char* data = new unsigned char[im_width * im_height];
   unsigned char* data_ptr = data;
   unsigned char* image_data_ptr = (unsigned char*)img_grayscale->imageData;
-  int h = 0;
-  for (h = 0; h < im_height; h++) {
+  for (int h = 0; h < im_height; h++) {
     memcpy(data_ptr, image_data_ptr, im_width);
     data_ptr += im_width;
     image_data_ptr += img_grayscale->widthStep;
@@ -110,11 +153,12 @@ int main(int argc, char** argv)
   {
     cvCircle(img_color, cvPoint(points[i].x, points[i].y), 2, CV_RGB(0, 255, 0), CV_FILLED);
   }
-  cvSaveImage("result.jpg", img_color);
+  cvSaveImage(output_img.c_str(), img_color);
 
   // Release memory
   cvReleaseImage(&img_color);
   cvReleaseImage(&img_grayscale);
   delete[]data;
+
   return 0;
 }
