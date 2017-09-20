@@ -10,22 +10,27 @@ all: FaceIdentification
 
 .PHONY: FaceDetection
 FaceDetection:
-	rm -rf $(SFD_dir)/build && mkdir $(SFD_dir)/build
+	if [ ! -e $(SFD_dir)/build/Makefile ]; then \
+		rm -rf $(SFD_dir)/build && mkdir $(SFD_dir)/build; \
+		cd $(SFD_dir)/build; \
+		cmake ..; \
+	fi; \
 	cd $(SFD_dir)/build; \
-	cmake ..; \
 	make -j2; \
 	mkdir -p $(ROOT_PATH)/bin; \
 	cp -rf $(SFD_dir)/model $(ROOT_PATH)/bin; \
 	cp $(SFD_dir)/build/facedet_test $(ROOT_PATH)/bin;
 
-
 .PHONY: FaceAlignment
 FaceAlignment: FaceDetection
-	rm -rf $(SFA_dir)/build && mkdir $(SFA_dir)/build
+	if [ ! -e $(SFA_dir)/build/Makefile ]; then \
+		rm -rf $(SFA_dir)/build && mkdir $(SFA_dir)/build; \
+		cd $(SFA_dir)/build; \
+		cp $(SFD_dir)/include/face_detection.h $(SFA_dir)/include;\
+		cp $(SFD_dir)/build/libseeta_facedet_* $(SFA_dir)/build;\
+		cmake ..; \
+	fi; \
 	cd $(SFA_dir)/build; \
-	cp $(SFD_dir)/include/face_detection.h $(SFA_dir)/include;\
-	cp $(SFD_dir)/build/libseeta_facedet_* $(SFA_dir)/build;\
-	cmake ..; \
 	make -j2; \
 	mkdir -p $(ROOT_PATH)/bin; \
 	cp -rf $(SFA_dir)/model $(ROOT_PATH)/bin; \
