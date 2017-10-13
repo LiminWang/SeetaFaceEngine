@@ -42,15 +42,25 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-  if (argc < 3) {
+  std::string model_path = "./model";
+  std::string model_fd_name = "seeta_fd_frontal_v1.0.bin";
+  std::string model_fd;
+
+  if (argc < 2) {
       cout << "Usage: " << argv[0]
-          << " image_path model_path"
+          << " image_name {model_path}"
           << endl;
       return -1;
+  } else if (argc == 3) {
+    cout << "argv[2]: " << argv[2] << endl;
+    model_path = argv[2];
   }
 
+  model_fd = model_path + "/" +  model_fd_name;
+
+  cout << "model_fd: " << model_fd << endl;
   const char* img_path = argv[1];
-  seeta::FaceDetection detector(argv[2]);
+  seeta::FaceDetection detector(model_fd.c_str());
 
   detector.SetMinFaceSize(40);
   detector.SetScoreThresh(2.f);
